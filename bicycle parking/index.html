@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset='utf-8' />
+    <title>Bicycle Parking</title>
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.51.0/mapbox-gl.js'></script>
+    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.51.0/mapbox-gl.css' rel='stylesheet' />
+    <style>
+    body {
+        margin: 0;
+        padding: 0;
+    }
+
+    #map {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 100%;
+    }
+
+    .legend {
+        background-color: #fff;
+        border-radius: 3px;
+        bottom: 30px;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.10);
+        font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+        padding: 10px;
+        position: absolute;
+        right: 10px;
+        z-index: 1;
+    }
+
+    .legend h4 {
+        margin: 0 0 10px;
+    }
+
+    .legend div span {
+        border-radius: 50%;
+        display: inline-block;
+        height: 10px;
+        margin-right: 5px;
+        width: 10px;
+    }
+
+    .symbol-icon {
+        background-size: 352px 212px;
+        display: inline-block;
+        vertical-align: middle;
+        height: 19px;
+        width: 19px;
+        transform: scale(1);
+    }
+    .highcapacity {
+        background-image: url("http://hiradh2.github.io/bicycleparking/sprite-1.png");
+        background-position: -180px -194px;
+    }
+    .racks {
+        background-image: url("http://hiradh2.github.io/bicycleparking/sprite-1.png");
+        background-position: -195px -194px;
+    }
+
+    .area-popup .mapboxgl-popup-content {
+        background: #a56564;
+        padding: 20px;
+        color: #fff;
+        box-shadow: 0px 2px 13px rgba(0, 0, 0, 0.5);
+    }
+   
+    .area-popup .mapboxgl-popup-tip {
+        display: none;
+    }
+    </style>
+<head>
+<!-- legend - START -->
+    <div id='state-legend' class='legend'>
+        <h4>Legend</h4>
+        <div><span style='background-color: #0c6d1a'></span>Bikespace
+        </div>
+        <div>
+            <div class="symbol-icon highcapacity"></div>Bicycle Parking - High Capacity(Outdoor)
+        </div>
+        <div>
+            <div class="symbol-icon rack"></div>Bicycle Parking Racks
+        </div>
+    </div>
+<!-- legend - END -->
+
+<body>
+    <div id="map"></div>
+    <script>
+    mapboxgl.accessToken = 'pk.eyJ1IjoiaGlyYWRoIiwiYSI6ImNqcDRkeTk5aTBiczMzcW9oeGFvZzU0ZnkifQ.jX6UGH4kZxbN9ZKaLe6a_Q';
+    var map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/hiradh/cjpbt257v88m42sk3tg7syjmc',
+        center: [-79.389176, 43.722602],
+        zoom: 10.7
+    });
+
+    // Area Popup - START
+    map.on('click', 'archive-2ae6cn', function(e) {
+
+        new mapboxgl.Popup({ className: 'area-popup', anchor: 'top-left' })
+            .setLngLat(e.lngLat)
+            .setHTML(e.features[0].properties.AREA_NAME)
+            .addTo(map);
+
+        // Change the cursor to a pointer when the mouse is over the neighborhood layer.
+        map.on('mouseenter', 'archive-2ae6cn', function() {
+            map.getCanvas().style.cursor = 'pointer';
+        });
+
+        // Change it back to a pointer when it leaves.
+        map.on('mouseleave', 'archive-2ae6cn', function() {
+            map.getCanvas().style.cursor = '';
+        });
+
+    });
+
+
+
+    // Area Popup- END
+
+
+    // Bikespace Popup - START
+    map.on('click', function(e) {
+        var features = map.queryRenderedFeatures(e.point, {
+            layers: ['bikespace']
+        });
+
+        if (!features.length) {
+            return;
+        }
+
+        var feature = features[0];
+
+        var popup = new mapboxgl.Popup({ offset: [0, -15] })
+            .setLngLat(feature.geometry.coordinates)
+            .setHTML('<p> <strong>Problem Type: </strong>' + feature.properties.problem_type_collapse + '</p>' + '<p><strong>Duration: </strong>' + feature.properties.duration + '</p>' + '<p><strong>Date: </strong>' + feature.properties.date + '</p>')
+            .setLngLat(feature.geometry.coordinates)
+            .addTo(map);
+
+        // Change the cursor to a pointer when the mouse is over the bikes layer.
+        map.on('mouseenter', 'bikespace', function() {
+            map.getCanvas().style.cursor = 'pointer';
+        });
+
+        // Change it back to a pointer when it leaves.
+        map.on('mouseleave', 'bikespace', function() {
+            map.getCanvas().style.cursor = '';
+        });
+    });
+    // Bikespace Popup - END
+
+    // Bike Outdoor Parking Popup - START
+    map.on('click', function(e) {
+        var features = map.queryRenderedFeatures(e.point, {
+            layers: ['bike-on-street-c9nn5t']
+        });
+
+        if (!features.length) {
+            return;
+        }
+
+        var feature = features[0];
+
+        var popup = new mapboxgl.Popup({ offset: [0, -15] })
+            .setLngLat(feature.geometry.coordinates)
+            .setHTML('<p><strong>Notes: </strong>' + feature.properties.DETAILS + '</p>'+ '<p><strong>Capacity: </strong>' + feature.properties.BIC_CAPACIT + '</p>')
+            .setLngLat(feature.geometry.coordinates)
+            .addTo(map);
+
+        // Change the cursor to a pointer when the mouse is over the high capacity parking layer.
+        map.on('mouseenter', 'bike-on-street-c9nn5t', function() {
+            map.getCanvas().style.cursor = 'pointer';
+        });
+
+        // Change it back to a pointer when it leaves.
+        map.on('mouseleave', 'bike-on-street-c9nn5t', function() {
+            map.getCanvas().style.cursor = '';
+        });
+    });
+    // Bike Outdoor Parking Popup - END
+
+    // Bicycle Parking Racks - START
+    map.on('click', function(e) {
+        var features = map.queryRenderedFeatures(e.point, {
+            layers: ['bicycle-parking-racks-3taoai']
+        });
+
+        if (!features.length) {
+            return;
+        }
+
+        var feature = features[0];
+
+        var popup = new mapboxgl.Popup({ offset: [0, -15] })
+            .setLngLat(feature.geometry.coordinates)
+            .setHTML('<p> <strong>Notes: </strong>' + feature.properties.NOTES + '</p>' + '<p><strong>Seasonal: </strong>' + feature.properties.SEASONAL + '</p>' + '<p><strong>Capacity: </strong>' + feature.properties.CAPACITY + '</p>')
+            .setLngLat(feature.geometry.coordinates)
+            .addTo(map);
+
+
+        // Change the cursor to a pointer when the mouse is over the bicycle parking racks layer.
+        map.on('mouseenter', 'bicycle-parking-racks-3taoai', function() {
+            map.getCanvas().style.cursor = 'pointer';
+        });
+
+        // Change it back to a pointer when it leaves.
+        map.on('mouseleave', 'bicycle-parking-racks-3taoai', function() {
+            map.getCanvas().style.cursor = '';
+        });
+    });
+    // Bicycle Parking Racks - END
+
+    </script>
+</body>
+
+</html>
